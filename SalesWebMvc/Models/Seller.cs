@@ -14,6 +14,7 @@ namespace SalesWebMvc.Models
         public DateTime BirthDate { get; set; }
         public double BaseSalary { get; set; }
         public Department Department { get; set; } // associação para um departmento
+        public int DepartmentId { get; set; } // avisa ao entity framework que há chave estrangeira e não pode ser nulo
         public ICollection<SalesRecord> Sales { get; set; } = new List<SalesRecord>(); // associação para muitas vendas 
 
         public Seller()
