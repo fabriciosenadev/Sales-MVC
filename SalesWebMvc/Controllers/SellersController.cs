@@ -58,7 +58,7 @@ namespace SalesWebMvc.Controllers
             if (id == null)
             {
                 //return NotFound(); // forma provisória
-                return RedirectToAction(nameof(Error), new { message = "Id not provided"});
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
             var obj = await _sellerService.FindByIdAsync(id.Value); // parametros opcionais devem conter valor para serem utilizados e atribuidos
@@ -75,11 +75,19 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            await _sellerService.RemoveAsync(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                // tratamento de integridade para deltar um vendedor
+                await _sellerService.RemoveAsync(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (IntegrityException e)
+            {
+                return RedirectToAction(nameof(Error), new { message = e.Message });
+            }
         }
 
-        public async  Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -139,7 +147,7 @@ namespace SalesWebMvc.Controllers
                 await _sellerService.UpdateAsync(seller);
                 return RedirectToAction(nameof(Index));
             }
-            catch(ApplicationException e) // este é o supertipo das duas exceptions será tudo tratado via upcasting no supertipo
+            catch (ApplicationException e) // este é o supertipo das duas exceptions será tudo tratado via upcasting no supertipo
             {
                 return RedirectToAction(nameof(Error), new { message = e.Message });
             }
