@@ -5,6 +5,7 @@ using SalesWebMvc.Services;
 using SalesWebMvc.Services.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -48,13 +49,15 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                //return NotFound(); // forma provisória
+                return RedirectToAction(nameof(Error), new { message = "Id not provided"});
             }
 
             var obj = _sellerService.FindById(id.Value); // parametros opcionais devem conter valor para serem utilizados e atribuidos
             if (obj == null)
             {
-                return NotFound();
+                //return NotFound(); // forma provisória
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
             }
 
             return View(obj);
@@ -72,13 +75,15 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                //return NotFound(); // forma provisória
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
             var obj = _sellerService.FindById(id.Value); // parametros opcionais devem conter valor para serem utilizados e atribuidos
             if (obj == null)
             {
-                return NotFound();
+                //return NotFound(); // forma provisória
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
             }
             return View(obj);
         }
@@ -87,13 +92,15 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                //return NotFound(); // forma provisória
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
             var obj = _sellerService.FindById(id.Value); // parametros opcionais devem conter valor para serem utilizados e atribuidos
             if (obj == null)
             {
-                return NotFound();
+                //return NotFound(); // forma provisória
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
             }
 
             List<Department> departments = _departmentService.FindAll();
@@ -107,23 +114,44 @@ namespace SalesWebMvc.Controllers
         {
             if (id != seller.Id)
             {
-                return BadRequest();
+                //return BadRequest(); // forma provisória
+                return RedirectToAction(nameof(Error), new { message = "Id mismatch" });
             }
 
             try
             {
-
+                // possível retorno de exception, verificar o metodo update
                 _sellerService.Update(seller);
                 return RedirectToAction(nameof(Index));
             }
-            catch(NotFoundException)
+            catch(ApplicationException e) // este é o supertipo das duas exceptions será tudo tratado via upcasting no supertipo
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = e.Message });
             }
-            catch (DbConcurrencyException)
+            // devido a uma série de repetições de código fica mais legivel tratar o generalista via upcasting e ambas estarão inclusas
+            //catch(NotFoundException e)
+            //{
+            //    //return NotFound(); // forma provisória
+            //    return RedirectToAction(nameof(Error), new { message = e.Message });
+            //}
+            //catch (DbConcurrencyException e)
+            //{
+            //    return BadRequest();
+            //    //return NotFound(); // forma provisória
+            //    return RedirectToAction(nameof(Error), new { message = e.Message });
+            //}
+        }
+
+        public IActionResult Error(string message)
+        {
+            var viewModel = new ErrorViewModel
             {
-                return BadRequest();
-            }
+                Message = message,
+                // propriedade Id é opcional, pega a requisição usando recursos do framework
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            };
+
+            return View(viewModel);
         }
     }
 }
